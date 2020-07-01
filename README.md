@@ -12,7 +12,7 @@
 Command Line Interface (CLI)，中文翻译是命令行交互接口。这是一个在前端和后端都非常有用的工具，可以使用命令行对某些系统功能或工具进行调用。我们在这次作业里面将会带（假的，其实大部分是让大家自己研究）大家实现一个简单的 CLI。
 
 ---
-![apt-cli-example][image-1]
+![](https://tva1.sinaimg.cn/large/007S8ZIlgy1ggb7i9exa8j31990u07ah.jpg)
 <center>我们用到的apt-get也是一个常用CLI</center>
 
 ---
@@ -84,7 +84,7 @@ Command Line Interface (CLI)，中文翻译是命令行交互接口。这是一�
 
 - 加分项
   - **0.1%** `./search-cli -j` 可以在 Terminal 中画出一副你想象中蒜头君的图（如图所示）
-  ![boxed][image-2]
+![](https://tva1.sinaimg.cn/large/007S8ZIlgy1ggb7i8vm01j30l30drwg3.jpg)
   - **2%** 更大的数据集，来自于 https://snap.stanford.edu/data/sx-stackoverflow.html
 	- \~260万个顶点 \~6400万条边
 	- 需要更好的优化（内存，时间复杂度）
