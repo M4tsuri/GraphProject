@@ -11,8 +11,10 @@ typedef struct edges {
 #ifndef GRAPH
 #define GRAPH
 typedef struct graph {
-    graphEdges *_edges;
-    int *_edgeList;
+    graphEdges *_edgeList;
+    int *_vertexList;
+    int _edgeNum;
+    int _vertexNum;
     
     /* destructor of the class */
     int (*destroyGraph)(struct graph *);
