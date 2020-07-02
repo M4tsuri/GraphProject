@@ -1,1 +1,144 @@
-// todo
+#include "stats.h"
+#include <stdio.h>
+#include <stdlib.h>
+
+static void addEdge(graphEdges *edgeList, int *edges, int start, int end, int ID, int weight);
+static void readTri(char *line, int *a, int *b, int *c);
+static void *safeMalloc(Graph *, size_t);
+static void safeDestroy(Graph *, char *);
+
+/* initialize the while graph with the data specified in file */
+Graph *initGraph(char *filename) {
+    /* request space */
+    Graph *productGraph = NULL;
+    productGraph = (Graph *) safeMalloc(productGraph, sizeof(Graph));
+
+    /* initialize method pointers */
+    //productGraph->closenessCentrality = _closenessCentrality;
+    productGraph->destroyGraph = _destroyGraph;
+    //productGraph->freemanNetworkCentrality = _freemanNetworkCentrality;
+    //productGraph->numberOfEdges = _numberOfEdges;
+    //productGraph->numberOfVertices = _numberOfVertices;
+
+    /* open source file */
+    FILE *srcFile = NULL;
+    srcFile = fopen(filename, "r");
+    if (srcFile == NULL){
+        safeDestroy(productGraph, "Open file failed: ");
+    }
+
+    /* get vertex number and edge number in graph */
+    char lineBuf[100] = {0};
+    int edgeNum = 0;
+    int vertexNum = 0;
+    int startNode = 0;
+    int endNode = 0;
+    int edgeWeight = 0;
+    for ( ; fgets(lineBuf, 100, srcFile); ++edgeNum) {
+        readTri(lineBuf, &startNode, &endNode, &edgeWeight);
+        vertexNum = vertexNum >= startNode ? vertexNum : startNode;
+        vertexNum = vertexNum >= endNode ? vertexNum : endNode;
+    }
+    productGraph->_vertexNum = vertexNum;
+    productGraph->_edgeNum = edgeNum;
+
+    /* allocate memory for edges and vertexes */
+    productGraph->_edgeList = (graphEdges *) safeMalloc(productGraph, 
+                                                        sizeof(graphEdges) * productGraph->_edgeNum);
+    productGraph->_vertexList = (int *) safeMalloc(productGraph,
+                                                   sizeof(int) * productGraph->_vertexNum);
+
+    /* initialize vertexList with -1 */
+    for (int i = 0; i < productGraph->_vertexNum; ++i) {
+        productGraph->_vertexList[i] = -1;
+    }
+
+    /* read data from file and construct graph */
+    rewind(srcFile);
+    for (int i = 0; i < productGraph->_edgeNum; ++i) {
+        fgets(lineBuf, 100, srcFile);
+        readTri(lineBuf, &startNode, &endNode, &edgeWeight);
+        addEdge(productGraph->_edgeList, productGraph->_vertexList,
+                startNode, endNode, i, edgeWeight);
+    }
+    
+    return productGraph;
+}
+
+/* destroy the graph in a safe way */
+int _destroyGraph(Graph *this) {
+    if (this->_edgeList) {
+        free(this->_edgeList);
+    }
+    if (this->_vertexList) {
+        free(this->_vertexList);
+    }
+    if (this) {
+        free(this);
+    }
+    return 0;
+}
+
+/* display a error string and exit */
+static void safeDestroy(Graph *this, char *errstr) {
+    perror(errstr);
+    if (this) {
+        this->destroyGraph(this);
+    }
+    exit(-1);
+}
+
+/* malloc in a safer way */
+static void *safeMalloc(Graph *this, size_t count) {
+    void *res = malloc(count);
+    if (res == NULL) {
+        safeDestroy(this, "Memory allocation failed: ");
+    }
+    return res;
+}
+
+/* add an edge in graph */
+static void addEdge(graphEdges *edgeList, int *vertexList, int start, int end, int ID, int weight) {
+    edgeList[ID].to = end;
+    edgeList[ID].weight = weight;
+    edgeList[ID].nextID = vertexList[start];
+    vertexList[start] = ID;
+}
+
+/* read three numbers from string and store it in a, b, c */
+static void readTri(char *line, int *a, int *b, int *c) {
+    char *tmp = NULL;
+    for (tmp = line; *tmp != ' '; ++tmp);
+    *tmp = 0;
+    *a = atoi(line);
+    line = tmp + 1;
+    for (tmp = line; *tmp != ' '; ++tmp);
+    *tmp = 0;
+    *b = atoi(line);
+    line = tmp + 1;
+    for (tmp = line; *tmp != '\n'; ++tmp);
+    *tmp = 0;
+    *c = atoi(line);
+}
+
+int _numerOfEdges(Graph *this) {
+    return this->_edgeNum;
+}
+
+int numberOfEdges(char name[]) {
+    Graph *tmp = initGraph(name);
+    int res = tmp->numberOfEdges(tmp);
+    tmp->destroyGraph(tmp);
+    return res;
+}
+
+int _numberOfVertices(Graph *this) {
+    return this->_vertexNum;
+}
+
+int numberOfVertices(char name[]) {
+    Graph *tmp = initGraph(name);
+    int res = tmp->numberOfVertices(tmp);
+    tmp->destroyGraph(tmp);
+    return res;
+}

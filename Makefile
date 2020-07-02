@@ -1,8 +1,11 @@
-search-cli: main.o
-	cc -o search-cli main.o
+search-cli: main.o stats.o
+	cc -o search-cli main.o stats.o
 
 main.o:
-	cc -c main.c search.c stats.c
+	cc -c main.c
+
+stats.o:
+	cc -c stats.c
 
 clean:
 
