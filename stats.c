@@ -197,7 +197,8 @@ int maxDegree(Graph *mainGraph)
             maxD = D;
         } 
     }
-
+    
+    free(temp);
 	return maxD;
 }
 
