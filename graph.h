@@ -7,14 +7,17 @@ typedef struct edges {
     int weight;
 } graphEdges;
 
+
 #ifndef GRAPH
 #define GRAPH
 
 typedef struct graph {
     graphEdges *_edgeList;
     int *_vertexList;
+    int *_involvedVertices;
     int _edgeNum;
     int _vertexNum;
+    int _vertexMax;
 
     /* destructor of the class */
     int (*destroyGraph)(struct graph *);

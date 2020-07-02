@@ -2,8 +2,8 @@
 #include "stats.h"
 
 int main(int argc, char *argv[]) {
-    int m = numberOfEdges("dummy_test.txt");
-    int n = numberOfVertices("dummy_test.txt");
+    int m = numberOfEdges("test.txt");
+    int n = numberOfVertices("test.txt");
     printf("%d\n%d\n", m, n);
     return 0;
 }

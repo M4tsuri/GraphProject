@@ -3,3 +3,5 @@
 search-cli
 *.gch
 .gdb_history
+*.o
+try.c
