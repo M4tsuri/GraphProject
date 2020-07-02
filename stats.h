@@ -7,9 +7,9 @@ typedef struct edges {
     int weight;
 } graphEdges;
 
-
 #ifndef GRAPH
 #define GRAPH
+
 typedef struct graph {
     graphEdges *_edgeList;
     int *_vertexList;
@@ -20,23 +20,15 @@ typedef struct graph {
     int (*destroyGraph)(struct graph *);
 
     /* they are implementations of some basic operations on graph */
-    int (*numberOfEdges)(struct  graph *);
-    int (*numberOfVertices)(struct  graph *);
-    int (*freemanNetworkCentrality)(struct graph *);
-    int (*closenessCentrality)(struct graph *);
+    int (*numberOfEdges)(struct graph *);
+    int (*numberOfVertices)(struct graph *);
+    float (*freemanNetworkCentrality)(struct graph *);
+    float (*closenessCentrality)(struct graph *, int);
 } Graph;
 #endif
 
 /* factory function to product graph class from file input */
 Graph *initGraph(char *);
-
-/* they will be registered as class Graph's methods */
-int _destroyGraph(Graph *);
-int _numberOfEdges(struct  graph *);
-int _numberOfVertices(struct  graph *);
-int _freemanNetworkCentrality(struct graph *);
-int _closenessCentrality(struct graph *);
-
 
 /* 
  * input: 
@@ -66,7 +58,7 @@ int numberOfVertices(char name[]);
  * return value:
  *      value of Freeman’s Network Centrality of graph
  */
-int freemanNetworkCentrality(char name[]);
+float freemanNetworkCentrality(char name[]);
 
 /* 
  * input: 
@@ -76,6 +68,6 @@ int freemanNetworkCentrality(char name[]);
  * return value:
  *      value of Closeness Centrality of graph
  */
-int closenessCentrality(char name[]);
+float closenessCentrality(char name[], int node);
 
 #endif

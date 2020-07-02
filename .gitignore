@@ -1,0 +1,5 @@
+*.in
+*.out
+search-cli
+*.gch
+.gdb_history
