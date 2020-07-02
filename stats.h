@@ -7,7 +7,6 @@ typedef struct edges {
     int weight;
 } graphEdges;
 
-
 #ifndef GRAPH
 #define GRAPH
 
@@ -30,13 +29,6 @@ typedef struct graph {
 
 /* factory function to product graph class from file input */
 Graph *initGraph(char *);
-
-/* they will be registered as class Graph's methods */
-int _destroyGraph(Graph *);
-int _numberOfEdges(Graph *);
-int _numberOfVertices(Graph *);
-float _freemanNetworkCentrality(Graph *);
-float _closenessCentrality(Graph *, int node);
 
 /* 
  * input: 
