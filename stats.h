@@ -1,35 +1,6 @@
 #ifndef STATS_H
 #define STATS_H
 
-typedef struct edges {
-    int to;
-    int nextID;
-    int weight;
-} graphEdges;
-
-#ifndef GRAPH
-#define GRAPH
-
-typedef struct graph {
-    graphEdges *_edgeList;
-    int *_vertexList;
-    int _edgeNum;
-    int _vertexNum;
-
-    /* destructor of the class */
-    int (*destroyGraph)(struct graph *);
-
-    /* they are implementations of some basic operations on graph */
-    int (*numberOfEdges)(struct graph *);
-    int (*numberOfVertices)(struct graph *);
-    float (*freemanNetworkCentrality)(struct graph *);
-    float (*closenessCentrality)(struct graph *, int);
-} Graph;
-#endif
-
-/* factory function to product graph class from file input */
-Graph *initGraph(char *);
-
 /* 
  * input: 
  *      filename

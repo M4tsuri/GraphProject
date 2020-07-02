@@ -1,9 +1,10 @@
 #include "stats.h"
+#include "graph.h"
 #include <stdio.h>
 #include <stdlib.h>
 
-/* point to an instance of Graph class */
-Graph *mainGraph;
+/* a instance of Graph used by all functions */
+Graph *mainGraph = NULL;
 
 /* some helper functions */
 static void addEdge(graphEdges *edgeList, int *edges, int start, int end, int ID, int weight);
