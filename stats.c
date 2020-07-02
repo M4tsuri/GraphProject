@@ -22,6 +22,7 @@ int _numberOfVertices(Graph *);
 float _freemanNetworkCentrality(Graph *);
 float _closenessCentrality(Graph *, int node);
 
+
 /* initialize the while graph with the data specified in file */
 Graph *initGraph(char *filename) {
     /* request space */
@@ -149,8 +150,7 @@ int numberOfEdges(char name[]) {
     if (!mainGraph) {
         initGraph(name);
     }
-    int res = mainGraph->numberOfEdges(mainGraph);
-    return res;
+    return mainGraph->numberOfEdges(mainGraph);
 }
 
 int _numberOfVertices(Graph *this) {
@@ -161,8 +161,7 @@ int numberOfVertices(char name[]) {
     if (!mainGraph) {
         initGraph(name);
     }
-    int res = mainGraph->numberOfVertices(mainGraph);
-    return res;
+    return mainGraph->numberOfVertices(mainGraph);;
 }
 
 void finalDestroy() {
