@@ -2,6 +2,7 @@
 #include "graph.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "search.h"
 
 /* a instance of Graph used by all functions */
 Graph *mainGraph = NULL;
@@ -252,7 +253,6 @@ void finalDestroy() {
     }
 }
 
-// 函数的主体在这里
 float _freemanNetworkCentrality(Graph *this) {
     int max = maxDegree(this);
     int n = this->_vertexNum;
@@ -262,35 +262,39 @@ float _freemanNetworkCentrality(Graph *this) {
 }
 
 float _closenessCentrality(Graph *this, int node) {
-    return 0.0;
+    int sum = 0;
+    int *path;
+    int n = this->_vertexNum;
+    Dijkstar(this, node, path);
+    for (int i = 0; i < this->_vertexNum; i++) {
+        sum += path[i];
+    }
+    float close = (n - 1) / sum;
+    return close;
 }
 
-// 注释写上函数的作用
-// 另：我们希望该函数是一个工具函数，不被用户使用
-// 因此使用static来确保其在其他文件中不可见
-// 另：记得在本文件的开头声明该函数
+/*Calculate the maximum degree of the graph*/
 static int maxDegree(Graph *this)
 {
     int temp[this->_vertexNum];
-    // 内存管理函数尽可能不使用，能用数组就用数组
     initArray(temp, this->_vertexNum, 0);
 	int D;
 
-    for (int i = 0; i < this->_edgeNum; i++) {
-        int next = this->_edgeList[i].nextID;
-        int now =  this->_edgeList[i].to;
-        temp[now]++;
-        temp[next]++;           
+    for (int j = 0; j < this->_vertexNum; j++) {
+        for (int i = 0; i < this->_edgeNum; i++) {
+            int next = this->_edgeList[i].nextID;
+            int now =  this->_edgeList[i].to;
+            temp[now]++;
+            temp[next]++;           
+        }
     }
-    // 遍历所有路径需要两重for循环
 
     int maxD = temp[0];  
-    for (int i = 1; i < mainGraph->_vertexNum; i++) {
-        if (D > maxD) {
-            maxD = D;
+    for (int i = 1; i < this->_vertexNum; i++) {
+        if (temp[i] > maxD) {
+            maxD = temp[i];
         } 
     }
-    // 循环了个寂寞=-=
     
 	return maxD;
 }
@@ -300,7 +304,15 @@ float freemanNetworkCentrality(char name[])
     if (!mainGraph) {
         initGraph(name);
     }
-    // 积极使用类，确保代码复用
+ 
     return mainGraph->freemanNetworkCentrality(mainGraph);
 }
 
+float closenessCentrality(char name[], int node)
+{
+    if (!mainGraph) {
+        initGraph(name);
+    }
+ 
+    return mainGraph->closenessCentrality(mainGraph);
+}
