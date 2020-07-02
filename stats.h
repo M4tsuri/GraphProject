@@ -2,7 +2,7 @@
 #define STATS_H
 
 /* 
- * input: 
+ * input:
  *      filename
  * side effects:
  *      None
