@@ -60,6 +60,9 @@ Graph *initGraph(char *filename) {
     productGraph->freemanNetworkCentrality = _freemanNetworkCentrality;
     productGraph->numberOfEdges = _numberOfEdges;
     productGraph->numberOfVertices = _numberOfVertices;
+    productGraph->graphBFS = _graphBFS;
+    productGraph->graphDFS = _graphDFS;
+    productGraph->graphDijkstra = _graphDijkstra;
 
     /* open source file */
     int fd = 0;
@@ -254,10 +257,9 @@ void finalDestroy() {
 }
 
 float _freemanNetworkCentrality(Graph *this) {
-    int max = maxDegree(this);
-    int n = this->_vertexNum;
-    int m = this->_edgeNum;
-    float center = (n * max) / ((n - 1) * (n - 2));
+    float maxD = (float)maxDegree(this);
+    float vertexNum = this->_vertexNum;
+    float center = (vertexNum * maxD) / ((vertexNum - 1) * (vertexNum - 2));
     return center;
 }
 
@@ -265,7 +267,7 @@ float _closenessCentrality(Graph *this, int node) {
     int sum = 0;
     int *path;
     int n = this->_vertexNum;
-    Dijkstar(this, node, path);
+    //this->graphDijkstar(this, node, path);
     for (int i = 0; i < this->_vertexNum; i++) {
         sum += path[i];
     }
@@ -276,27 +278,26 @@ float _closenessCentrality(Graph *this, int node) {
 /*Calculate the maximum degree of the graph*/
 static int maxDegree(Graph *this)
 {
-    int temp[this->_vertexNum];
-    initArray(temp, this->_vertexNum, 0);
+    int temp[this->_vertexMax];
+    initArray(temp, this->_vertexMax, 0);
 	int D;
 
-    for (int j = 0; j < this->_vertexNum; j++) {
-        for (int i = 0; i < this->_edgeNum; i++) {
-            int next = this->_edgeList[i].nextID;
-            int now =  this->_edgeList[i].to;
-            temp[now]++;
-            temp[next]++;           
+    for (int i = 0; i < this->_vertexMax; i++) {
+        int ID = this->_vertexList[i];
+        temp[i] += (int)(ID != -1);
+        for ( ; ID != -1; ID = this->_edgeList[ID].nextID) {
+            temp[this->_edgeList[ID].to]++;
         }
     }
 
-    int maxD = temp[0];  
+    int maxDegree = temp[0];  
     for (int i = 1; i < this->_vertexNum; i++) {
-        if (temp[i] > maxD) {
-            maxD = temp[i];
+        if (temp[i] > maxDegree) {
+            maxDegree = temp[i];
         } 
     }
     
-	return maxD;
+	return maxDegree;
 }
 
 float freemanNetworkCentrality(char name[])
@@ -314,5 +315,5 @@ float closenessCentrality(char name[], int node)
         initGraph(name);
     }
  
-    return mainGraph->closenessCentrality(mainGraph);
+    return mainGraph->closenessCentrality(mainGraph, node);
 }

@@ -1,9 +1,8 @@
 #include <stdio.h>
-#include "stats.h"
+#include "tools.h"
+
 
 int main(int argc, char *argv[]) {
-    int m = numberOfEdges("test.txt");
-    int n = numberOfVertices("test.txt");
-    printf("%d\n%d\n", m, n);
+    parseArguments(argc, argv)();
     return 0;
 }
