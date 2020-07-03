@@ -12,13 +12,13 @@ int path[mainGraph->_edgeNum];
 void dfs(Graph* this, int start, int end); 
 
 /*Main function*/
-int* DFS(Graph *this, int start, int end);
-int* BFS(Graph *this, int start, int end);
-int* Dijkstar(Graph *this, int start, int end);
+int* graphDFS(char *filename, int start, int end);
+int* graphBFS(Graph *this, int start, int end);
+int* graphDijkstar(Graph *this, int start, int end);
 int* shortestPath(int u, int v, char algorithm[]);
 
 /*Recursive auxiliary function*/
-void dfs(Graph* this, int start, int end)
+static void dfs(Graph* this, int start, int end)
 {
 	if (start == end) {
 		for (int i = 0; i < t; i++) {
@@ -43,7 +43,8 @@ void dfs(Graph* this, int start, int end)
 	}
 }
 
- int* DFS(Graph* this, int start, int end)
+//这几个算法也是graph类里面的吗
+int* _graphDFS(Graph *this, int start, int end)
 {
     mainGraph = this;
     ID = this->_vertexList[start];
@@ -52,6 +53,16 @@ void dfs(Graph* this, int start, int end)
 	path[t++] = start;
 	dfs(this, start, end);
 	return path;
+}
+int _graphBFS(struct graph *, int, int, int  *);
+int _graphDijkstra(struct graph *, int, int, int *);
+
+ int* graphDFS(char *filename, int start, int end)
+{
+   if (!mainGraph) {
+        initGraph(filename);
+    }
+    return mainGraph->_graphDFS(mainGraph, start, end);
 }
 
 //不知道这个函数如何传入文件，所以就先用maingraph了
@@ -66,4 +77,12 @@ int* shortestPath(int u, int v, char algorithm[])
         shortPath = Dijkstar(mainGraph, u, v);
     } 
     return shortPath;
+}
+
+int _graphBFS(struct graph *this, int start, int end, int *res) {
+    return 0;
+}
+
+int _graphDijkstra(struct graph *this, int start, int end, int *res) {
+    return 0;
 }

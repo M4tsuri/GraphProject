@@ -1,5 +1,10 @@
-#ifndef STATS_H
-#define STATS_H
+#ifndef SEARCH_H
+#define SEARCH_H
+#include "graph.h"
+
+int _graphDFS(struct graph *, int, int);
+int _graphBFS(struct graph *, int, int, int *);
+int _graphDijkstra(struct graph *, int, int, int *);
 
 /* 
  * input:
@@ -9,7 +14,7 @@
  * return value:
  *      pointer to start and end path
  */
-int* DFS(Graph *this, int start, int end);
+int* graphDFS(char *filename, int start, int end);
 
 /* 
  * input: 
@@ -19,7 +24,7 @@ int* DFS(Graph *this, int start, int end);
  * return value:
  *      pointer to the shortest path from start to end
  */
-int* BFS(Graph *this, int start, int end);
+int* graphBFS(char *filename, int start, int end);
 
 /* 
  * input: 
@@ -39,6 +44,6 @@ int* shortestPath(int u, int v, char algorithm[]);
  * return value:
  *      pointer to the shortest path from start to end
  */
-int* Dijkstar(Graph *this, int start, int end);
+int* graphDijkstar(char *filename, int start, int end);
 
 #endif
