@@ -266,7 +266,7 @@ float _closenessCentrality(Graph *this, int node) {
     int *path;
     int n = this->_vertexNum;
     Dijkstar(this, node, path);
-    for (int i = 0; i < this->_vertexNum; i++) {
+    for (int i = 0; i < this->_vertexMax; i++) {
         sum += path[i];
     }
     float close = (n - 1) / sum;
@@ -280,12 +280,12 @@ static int maxDegree(Graph *this)
     initArray(temp, this->_vertexNum, 0);
 	int D;
 
-    for (int j = 0; j < this->_vertexNum; j++) {
-        for (int i = 0; i < this->_edgeNum; i++) {
-            int next = this->_edgeList[i].nextID;
-            int now =  this->_edgeList[i].to;
+    for (int i = 0; i < this->_vertexMax; i++) {
+        int ID = this-> _vertexList[i];
+        temp[i] += (int)(ID != -1);
+        for ( ; ID != -1; ID = this->_edgeList[ID].nextID) {
+            int now =  this->_edgeList[i].to;           
             temp[now]++;
-            temp[next]++;           
         }
     }
 
