@@ -294,9 +294,9 @@ float _freemanNetworkCentrality(Graph *this) {
 float _closenessCentrality(Graph *this, int node) {
     int sum = 0;
     int *path;
-    int n = this->_vertexNum;
+    int n = this->_vertexMax;
     //this->graphDijkstar(this, node, path);
-    for (int i = 0; i < this->_vertexNum; i++) {
+    for (int i = 0; i < this->_vertexMax; i++) {
         sum += path[i];
     }
     float close = (n - 1) / sum;

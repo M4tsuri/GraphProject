@@ -2,7 +2,7 @@
 #define SEARCH_H
 #include "graph.h"
 
-int _graphDFS(struct graph *, int, int, int *);
+int _graphDFS(struct graph *, int, int);
 int _graphBFS(struct graph *, int, int, int *);
 int _graphDijkstra(struct graph *, int, int, int *);
 
