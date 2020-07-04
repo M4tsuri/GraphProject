@@ -119,7 +119,18 @@ static void bfsFunc(void) {
 static void dijkstraFunc(void) {
     int *res = NULL;
     res = graphDijkstar(filename, startPoint, targetPoint);
-    //free(res);
+    int len = 0;
+    for ( ; res[len + 1] != -1; ++len);
+    if (len == 0) {
+        printf("No path.\n");
+        free(res);
+        return;
+    }
+    for ( ; len > 0; --len) {
+        printf("%d -> ", res[len]);
+    }
+    printf("%d\n", res[0]);
+    free(res);
 }
 
 static void throwErr() {

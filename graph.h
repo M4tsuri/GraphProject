@@ -14,9 +14,9 @@ typedef struct {
     int (*numberOfVertices)(struct graph *);
     float (*freemanNetworkCentrality)(struct graph *);
     float (*closenessCentrality)(struct graph *, int);
-    int (*graphDFS)(struct graph *, int, int, int *);
+    int *(*graphDFS)(struct graph *, int, int);
     int (*graphBFS)(struct graph *, int, int, int *);
-    int (*graphDijkstra)(struct graph *, int, int, int *);
+    int *(*graphDijkstra)(struct graph *, int, int);
 } graphVtable;
 
 typedef struct edges {

@@ -89,7 +89,7 @@ static void _push(priorityQueue *this, void *item) {
 
     this->_size++;
     int i = this->_size;
-    for ( ; compare(item, this->_items + this->_itemSize * (i / 2)) < 0; i /= 2) {
+    for ( ; compare(item, this->_items + this->_itemSize * (i / 2)) < 0 && i != 0; i /= 2) {
         assign(this->_items + this->_itemSize * i,
                this->_items + this->_itemSize * (i / 2));
     }
