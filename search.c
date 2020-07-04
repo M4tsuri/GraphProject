@@ -9,6 +9,8 @@
 
 static int compare(const void *a, const void *b);
 static void assign(void *a, void *b);
+static void ensureInvolved(Graph *src, int point);
+
 typedef struct {
     unsigned long long pos;
     unsigned long long dis;
@@ -17,6 +19,17 @@ typedef struct {
 static void dfs(Graph* this, int start, int end, int *pth, int *vis); 
 int _graphBFS(struct graph *, int, int, int  *);
 int *_graphDijkstra(struct graph *, int, int);
+
+static void ensureInvolved(Graph *src, int point) {
+    if (point >= src->_vertexMax) {
+        printf("Error: vertex %d not in graph.\n", point);
+        exit(-1);
+    }
+    if (src->_involvedVertices[point] == -1) {
+        printf("Error: vertex %d not in graph.\n", point);
+        exit(-1);
+    }
+}
 
 int _graphBFS(struct graph *this, int start, int end, int *res) {
     return 0;
@@ -99,6 +112,8 @@ int* graphDijkstar(char *filename, int start, int end) {
     if (!mainGraph) {
         initGraph(filename);
     }
+    ensureInvolved(mainGraph, start);
+    ensureInvolved(mainGraph, end);
 
     return mainGraph->vtable.graphDijkstra(mainGraph, start, end);
 }
@@ -163,7 +178,7 @@ int *_graphDijkstra(struct graph *this, int start, int end) {
     }
     path[top] = -1;
 
-    free(vertexDis);
+    free(vertexDis); 
     return path;
 }
 

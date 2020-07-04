@@ -136,6 +136,7 @@ Graph *initGraph(char *filename) {
         }
     }
     
+    printf("Graph initialized.\n");
     return productGraph;
 }
 
@@ -154,6 +155,7 @@ int _destroyGraph(Graph *this) {
         free(this);
     }
     mainGraph = NULL;
+    printf("Graph destroyed.\n");
     return 0;
 }
 

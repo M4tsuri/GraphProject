@@ -2,9 +2,20 @@
 #include "priority.h"
 #include <stdio.h>
 
-static int (*compare)(const void *, const void *);
-static void (*assign)(void *, void *);
+/* you need to specify compare function and assign function to use is */
+/* parameters: 
+ *  pointers to the objects you need to compare
+ * return value:
+ *  positive means larger, 0 equal, negative smaller
+ */
+static int (*compare)(const void *a, const void *b);
 
+/* parameters:
+ *  pointers to source and dest
+ * effect:
+ *  assign the value of source to dest
+ */
+static void (*assign)(void *a, void *b);
 
 static void *_pop(priorityQueue *);
 static void _push(priorityQueue *, void *);
@@ -39,10 +50,12 @@ static int _isFull(priorityQueue *this) {
     return 1;
 }
 
+/* return size of the queue */
 static int _size(priorityQueue *this) {
     return this->_size;
 }
 
+/* pop the minimal(specified by compare function) item in the queue */
 static void *_pop(priorityQueue *this) {
     if (_isEmpty(this)) {
         printf("Error: No element in queue.\n");
@@ -75,6 +88,7 @@ static void *_pop(priorityQueue *this) {
     return minElement;
 }
 
+/* push an item to queue and place it in the right place */
 static void _push(priorityQueue *this, void *item) {
     if (this->vtable.isFull(this)) {
         printf("Error: Queue is full.\n");
@@ -103,7 +117,15 @@ static int _isEmpty(priorityQueue *this) {
     return 1;
 }
 
-
+/* parameters:
+ *  capacity: the max number of elements in this queue
+ *  itemSize: sizeof(element)
+ *  cmp: compare function
+ *  assi: assign function
+ * 
+ * return value:
+ *  a priorityQueue object
+ */
 priorityQueue *initPriorityQueue(int capacity, size_t itemSize, int (*cmp)(const void *, const void *), void (*assi)(void *, void *)) {
     priorityQueue *productQueue = NULL;
     productQueue = (priorityQueue *) malloc(sizeof(priorityQueue));
