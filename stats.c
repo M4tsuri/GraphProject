@@ -3,13 +3,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "search.h"
-
-/* a instance of Graph used by all functions */
-Graph *mainGraph = NULL;
+#include "tools.h"
 
 /* some helper functions */
-static void addEdge(Graph *src, int start, int end, int ID, int weight);
-static void readTri(char **line, int *a, int *b, int *c);
+static void addEdge(graphEdges *, int *, int start, int end, int ID, int weight);
 static void *safeMalloc(Graph *, size_t);
 static void safeDestroy(Graph *, char *);
 static int maxDegree(Graph *this);
@@ -47,6 +44,22 @@ long long syscall(long long n, long long a1,
     syscall(3, fd, 0, 0, 0, 0, 0)
 
 
+
+/* a instance of Graph used by all functions */
+Graph *mainGraph = NULL;
+
+static graphVtable graph_vtable = {
+    .closenessCentrality = _closenessCentrality,
+    .destroyGraph = _destroyGraph,
+    .freemanNetworkCentrality = _freemanNetworkCentrality,
+    .numberOfEdges = _numberOfEdges,
+    .numberOfVertices = _numberOfVertices,
+    .graphBFS = _graphBFS,
+    .graphDFS = _graphDFS,
+    .graphDijkstra = _graphDijkstra
+};
+
+
 /* initialize the while graph with the data specified in file */
 Graph *initGraph(char *filename) {
     /* request space */
@@ -55,14 +68,7 @@ Graph *initGraph(char *filename) {
 
     /* initialize method pointers */
     productGraph->_edgeNum = 0;
-    productGraph->closenessCentrality = _closenessCentrality;
-    productGraph->destroyGraph = _destroyGraph;
-    productGraph->freemanNetworkCentrality = _freemanNetworkCentrality;
-    productGraph->numberOfEdges = _numberOfEdges;
-    productGraph->numberOfVertices = _numberOfVertices;
-    productGraph->graphBFS = _graphBFS;
-    productGraph->graphDFS = _graphDFS;
-    productGraph->graphDijkstra = _graphDijkstra;
+    productGraph->vtable = graph_vtable;
 
     /* open source file */
     int fd = 0;
@@ -110,7 +116,7 @@ Graph *initGraph(char *filename) {
     int i = 0;
     for (char *curPtr = fileContent; curPtr < fileEnd; ++i) {
         readTri(&curPtr, &startNode, &endNode, &edgeWeight);
-        addEdge(productGraph, startNode, endNode, i, edgeWeight);
+        addEdge(productGraph->_edgeList, productGraph->_vertexList, startNode, endNode, i, edgeWeight);
         productGraph->_involvedVertices[startNode] = 0;
         productGraph->_involvedVertices[endNode] = 0;
     }
@@ -182,7 +188,7 @@ long long syscall(long long n,
 static void safeDestroy(Graph *this, char *errstr) {
     perror(errstr);
     if (this) {
-        this->destroyGraph(this);
+        this->vtable.destroyGraph(this);
     }
     exit(-1);
 }
@@ -197,29 +203,13 @@ static void *safeMalloc(Graph *this, size_t count) {
 }
 
 /* add an edge in graph */
-inline static void addEdge(Graph *src, int start, int end, int ID, int weight) {
-    src->_edgeList[ID].to = end;
-    src->_edgeList[ID].weight = weight;
-    src->_edgeList[ID].nextID = src->_vertexList[start];
-    src->_vertexList[start] = ID;
+inline static void addEdge(graphEdges *edgeList, int *vertexList, int start, int end, int ID, int weight) {
+    edgeList[ID].to = end;
+    edgeList[ID].weight = weight;
+    edgeList[ID].nextID = vertexList[start];
+    vertexList[start] = ID;
 }
 
-/* read three numbers from string and store it in a, b, c */
-inline static void readTri(char **line, int *a, int *b, int *c) {
-    char *tmp = NULL;
-    for (tmp = *line; *tmp != ' ' && *tmp != 0; ++tmp);
-    *tmp = 0;
-    *a = atoi(*line);
-    *line = tmp + 1;
-    for (tmp = *line; *tmp != ' ' && *tmp != 0; ++tmp);
-    *tmp = 0;
-    *b = atoi(*line);
-    *line = tmp + 1;
-    for (tmp = *line; *tmp != '\n' && *tmp != 0; ++tmp);
-    *tmp = 0;
-    *c = atoi(*line);
-    *line = tmp + 1;
-}
 
 /* initialize an array with a specified value num */
 inline static void initArray(int *start, int length, int num) {
@@ -236,7 +226,7 @@ int numberOfEdges(char name[]) {
     if (!mainGraph) {
         initGraph(name);
     }
-    return mainGraph->numberOfEdges(mainGraph);
+    return mainGraph->vtable.numberOfEdges(mainGraph);
 }
 
 int _numberOfVertices(Graph *this) {
@@ -247,19 +237,57 @@ int numberOfVertices(char name[]) {
     if (!mainGraph) {
         initGraph(name);
     }
-    return mainGraph->numberOfVertices(mainGraph);;
+    return mainGraph->vtable.numberOfVertices(mainGraph);;
 }
 
 void finalDestroy() {
     if (mainGraph) {
-        mainGraph->destroyGraph(mainGraph);
+        mainGraph->vtable.destroyGraph(mainGraph);
     }
 }
 
 float _freemanNetworkCentrality(Graph *this) {
-    float maxD = (float)maxDegree(this);
-    float vertexNum = this->_vertexNum;
-    float center = (vertexNum * maxD) / ((vertexNum - 1) * (vertexNum - 2));
+    int *degreeArray = (int *) calloc(sizeof(int), this->_vertexMax);
+    int bidirFlag = 0;
+
+    for (int i = 0; i < this->_vertexMax; i++) {
+        int ID = this->_vertexList[i];
+        for ( ; ID != -1; ID = this->_edgeList[ID].nextID) {
+            degreeArray[i]++;
+            int toID = this->_vertexList[this->_edgeList[ID].to];
+            for ( ; toID != -1; toID = this->_edgeList[toID].nextID) {
+                if (this->_edgeList[toID].to == i) {
+                    bidirFlag = 1;
+                    break;
+                }
+            }
+            if (bidirFlag) {
+                bidirFlag = 0;
+                continue;
+            }
+            degreeArray[this->_edgeList[ID].to]++;
+        }
+    }
+
+    int maxDegree = degreeArray[0];  
+    for (int i = 1; i < this->_vertexMax; i++) {
+        if (degreeArray[i] > maxDegree) {
+            maxDegree = degreeArray[i];
+        } 
+    }
+
+    unsigned long long int sum = 0;
+
+    for (int i = 0; i < this->_vertexMax; ++i) {
+        if (degreeArray[i] == 0) {
+            continue;
+        }
+        sum += maxDegree - degreeArray[i];
+    }
+    
+    unsigned long long vertexNum = this->_vertexNum;
+    float center = (double)sum / (((double)vertexNum - 1) * ((double)vertexNum - 2));
+    free(degreeArray);
     return center;
 }
 
@@ -275,38 +303,13 @@ float _closenessCentrality(Graph *this, int node) {
     return close;
 }
 
-/*Calculate the maximum degree of the graph*/
-static int maxDegree(Graph *this)
-{
-    int temp[this->_vertexMax];
-    initArray(temp, this->_vertexMax, 0);
-	int D;
-
-    for (int i = 0; i < this->_vertexMax; i++) {
-        int ID = this->_vertexList[i];
-        temp[i] += (int)(ID != -1);
-        for ( ; ID != -1; ID = this->_edgeList[ID].nextID) {
-            temp[this->_edgeList[ID].to]++;
-        }
-    }
-
-    int maxDegree = temp[0];  
-    for (int i = 1; i < this->_vertexNum; i++) {
-        if (temp[i] > maxDegree) {
-            maxDegree = temp[i];
-        } 
-    }
-    
-	return maxDegree;
-}
-
 float freemanNetworkCentrality(char name[])
 {
     if (!mainGraph) {
         initGraph(name);
     }
  
-    return mainGraph->freemanNetworkCentrality(mainGraph);
+    return mainGraph->vtable.freemanNetworkCentrality(mainGraph);
 }
 
 float closenessCentrality(char name[], int node)
@@ -315,5 +318,5 @@ float closenessCentrality(char name[], int node)
         initGraph(name);
     }
  
-    return mainGraph->closenessCentrality(mainGraph, node);
+    return mainGraph->vtable.closenessCentrality(mainGraph, node);
 }

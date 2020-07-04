@@ -2,6 +2,7 @@
 #include "stats.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "search.h"
 
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
@@ -116,7 +117,9 @@ static void bfsFunc(void) {
 }
 
 static void dijkstraFunc(void) {
-    return;
+    int *res = NULL;
+    res = graphDijkstar(filename, startPoint, targetPoint);
+    //free(res);
 }
 
 static void throwErr() {
@@ -156,20 +159,20 @@ void (*parseArguments(int argc, char **argv))(void) {
             filename = argv[i + 1];
             i += 2;
         } else if (strcmp(argv[i], "-u") == 0) {
-            for (int j = 0; argv[i][j] != 0; ++j) {
-                if (argv[i][j] < '0' || argv[i][j] > '9') {
+            for (int j = 0; argv[i + 1][j] != 0; ++j) {
+                if (argv[i + 1][j] < '0' || argv[i + 1][j] > '9') {
                     throwErr();
                 }
-                startPoint = atoi(argv[i]);
+                startPoint = atoi(argv[i + 1]);
                 startFlag = 1;
             }
             i += 2;
         } else if (strcmp(argv[i], "-v") == 0) {
-            for (int j = 0; argv[i][j] != 0; ++j) {
-                if (argv[i][j] < '0' || argv[i][j] > '9') {
+            for (int j = 0; argv[i + 1][j] != 0; ++j) {
+                if (argv[i + 1][j] < '0' || argv[i + 1][j] > '9') {
                     throwErr();
                 }
-                targetPoint = atoi(argv[i]);
+                targetPoint = atoi(argv[i + 1]);
                 endFlag = 1;
             }
             i += 2;
@@ -218,3 +221,22 @@ void (*parseArguments(int argc, char **argv))(void) {
     }
     return NULL;
 }
+
+
+/* read three numbers from string and store it in a, b, c */
+inline void readTri(char **line, int *a, int *b, int *c) {
+    char *tmp = NULL;
+    for (tmp = *line; *tmp != ' ' && *tmp != 0; ++tmp);
+    *tmp = 0;
+    *a = atoi(*line);
+    *line = tmp + 1;
+    for (tmp = *line; *tmp != ' ' && *tmp != 0; ++tmp);
+    *tmp = 0;
+    *b = atoi(*line);
+    *line = tmp + 1;
+    for (tmp = *line; *tmp != '\n' && *tmp != 0; ++tmp);
+    *tmp = 0;
+    *c = atoi(*line);
+    *line = tmp + 1;
+}
+
