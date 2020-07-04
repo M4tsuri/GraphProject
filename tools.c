@@ -51,6 +51,33 @@ int strcmp (const char *p1, const char *p2) {
 }
 /* from glibc 2.29 strcmp.c */
 
+/* function for making a syscall link open and mmap */
+inline __attribute__((always_inline))
+long long syscall(long long n, 
+                  long long a1, long long a2, 
+                  long long a3, long long a4, 
+                  long long a5, long long a6) {
+    long long ret;
+    register long long r8 __asm__("r8") = a5;
+    register long long r9 __asm__("r9") = a6;
+    register long long r10 __asm__("r10") = a4;
+    __asm__ __volatile__ (
+        "syscall\n\t"
+        : "=a"(ret)
+        : "a"(n),
+          "D"(a1),
+          "S"(a2),
+          "d"(a3),
+          "r"(r10),
+          "r"(r8),
+          "r"(r9)
+        : "memory",
+          "rcx",
+          "r11"
+    );
+    return ret;
+}
+
 
 static void helperFunc() {
     const char *helpMesg = 
@@ -109,10 +136,26 @@ static void clossnessFunc() {
 }
 
 static void dfsFunc(void) {
+    int *res = NULL;
+    res = graphDFS(filename, startPoint, targetPoint);
+    int len = 0;
+    for ( ; res[len + 1] != -1; ++len);
+    if (len == 0) {
+        printf("No path.\n");
+        free(res);
+        return;
+    }
+    printf("Path found:\n");
+    for (int i = 0; i < len; ++i) {
+        printf("%d -> ", res[i]);
+    }
+    printf("%d\n", res[len]);
+    free(res);
     return;
 }
 
 static void bfsFunc(void) {
+    
     return;
 }
 
@@ -126,6 +169,8 @@ static void dijkstraFunc(void) {
         free(res);
         return;
     }
+    printf("Path found:\n");
+    printf("Cost: %llu\n", (unsigned long long)res[len + 2]);
     for ( ; len > 0; --len) {
         printf("%d -> ", res[len]);
     }

@@ -1,6 +1,7 @@
 #ifndef GRAPH_H
 #define GRAPH_H
 
+
 #define MAX_AUXI
 
 struct graph;

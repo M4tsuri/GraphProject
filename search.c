@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "graph.h"
-#include <stdlib.h>
 #include "stats.h"
 #include "priority.h"
 #include "tools.h"
@@ -16,7 +15,7 @@ typedef struct {
     unsigned long long dis;
 } vertexInfo;
 
-static void dfs(Graph* this, int start, int end, int *pth, int *vis); 
+static int dfs(Graph* this, int start, int end, int *pth, char *vis); 
 int _graphBFS(struct graph *, int, int, int  *);
 int *_graphDijkstra(struct graph *, int, int);
 
@@ -37,40 +36,34 @@ int _graphBFS(struct graph *this, int start, int end, int *res) {
 
 
 /*Recursive auxiliary function*/
-static void dfs(Graph* this, int start, int end, int *path, int *visit)
+static int dfs(Graph* this, int start, int end, int *path, char *visit)
 {
     static int flag = 0;
-    static int t = 0;
-    static int ID;
+    static int t = 1;
 
 	if (start == end) {
-		for (int i = 0; i < t; i++) {
-			printf("%d ", path[i]);           
-		}
-		flag = 1;                             //mark end
-		return;
+        path[t] = -1;
+		return 1;
 	}
-
-	ID = this->_vertexList[start];
-	if (ID == -1)return;                      //the start point is sink
-	for (; this->_edgeList[ID].to != -1; ID = this->_edgeList[ID].nextID) {
-	    int num = this->_edgeList[ID].to;
-	    if (visit[num] != 1) {
-            visit[num] = 1;
-            path[t++] = num;
-            dfs(this, num, end, path, visit);
-            if (flag == 0) {                 //Avoid unnecessary loops
-                visit[num] = 0;
-                path[--t] = 0;
-            } else return;
+    
+	for (int ID = this->_vertexList[start]; ID != -1; ID = this->_edgeList[ID].nextID) {
+	    int currVertex = this->_edgeList[ID].to;
+	    if (visit[currVertex] != 1) {
+            visit[currVertex] = 1;
+            path[t++] = currVertex;
+            if (dfs(this, currVertex, end, path, visit)) {                 //Avoid unnecessary loops
+                return 1;
+            }
+            path[--t] = 0;  
 	    }
 	}
+    return 0;
 }
 
 //这几个算法也是graph类里面的吗
 int *_graphDFS(Graph *this, int start, int end)
 {
-    /*char *visit = (char *) calloc(sizeof(char), this->_vertexMax);
+    char *visit = (char *) calloc(sizeof(char), this->_vertexMax);
     int *path = (int *) calloc(this->_vertexNum, sizeof(int));
 
     int ID = this->_vertexList[start];
@@ -78,10 +71,41 @@ int *_graphDFS(Graph *this, int start, int end)
         return NULL;
     }
 	visit[start] = 1;
-	path[t++] = start;
-	dfs(this, start, end);
-	return path;*/
-    return NULL;
+	path[0] = start;
+
+    int dfsRet = 0;
+
+    asm(".intel_syntax noprefix\n");
+    register char *r8 __asm__("r8") = visit;
+    void *r9 = malloc(sizeof(long long) * 8 * this->_vertexNum);
+    register void *newStack __asm__("r9") = r9 + sizeof(long long) * 8 * (this->_vertexNum - 1);
+    register long long rsp __asm__("rsp");
+    *(long long *)newStack = rsp;
+    
+    __asm__ __volatile__ (
+         "push rbp\n"
+         "mov rbp, r9\n"
+         "mov rsp, rbp\n"
+         "call rax\n"
+         "pop rsp\n"
+         "sub rsp, 0x8\n"
+         "pop rbp\n"
+         : "=a"(dfsRet)
+         : "a"(dfs),
+           "D"(this),
+           "S"(start),
+           "d"(end),
+           "c"(path),
+           "r"(r8),
+           "r"(newStack)
+         : "memory"
+    );
+
+	if (dfsRet == 0) {
+        path[1] = -1;
+    }
+    free(r9);
+	return path;
 }
 
 
@@ -90,20 +114,22 @@ int *graphDFS(char *filename, int start, int end)
    if (!mainGraph) {
         initGraph(filename);
     }
+    ensureInvolved(mainGraph, start);
+    ensureInvolved(mainGraph, end);
     return mainGraph->vtable.graphDFS(mainGraph, start, end);
 }
 
 //不知道这个函数如何传入文件，所以就先用maingraph了
-int* shortestPath(int u, int v, char algorithm[])
+int* shortestPath(int u, int v, char algorithm[], char filename[])
 {
     int *shortPath;
-    /*if (strcmp(algorithm, "DFS") == 0) {
-        shortPath = DFS(mainGraph, u, v);
+    if (strcmp(algorithm, "DFS") == 0) {
+        shortPath = graphDFS(filename, u, v);
     } else if (strcmp(algorithm, "BFS" ) == 0) {
-        shortPath = BFS(mainGraph, u, v);
+  //      shortPath = graphBFS(filename, u, v);
     } else if (strcmp(algorithm, "BFS" ) == 0) {
-        shortPath = Dijkstar(mainGraph, u, v);
-    } */
+        shortPath = graphDijkstar(filename, u, v);
+    }
     return shortPath;
 }
 
@@ -177,6 +203,8 @@ int *_graphDijkstra(struct graph *this, int start, int end) {
         path[top] = cur;
     }
     path[top] = -1;
+    path[top + 1] = vertexDis[end];
+    path[top + 2] = vertexDis[end] >> 32;
 
     free(vertexDis); 
     return path;

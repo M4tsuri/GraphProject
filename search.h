@@ -34,7 +34,7 @@ int* graphBFS(char *filename, int start, int end);
  * return value:
  *      pointer to the path from start to end
  */
-int* shortestPath(int u, int v, char algorithm[]);
+int* shortestPath(int u, int v, char algorithm[], char filename[]);
 
 /* 
  * input: 

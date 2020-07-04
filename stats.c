@@ -21,28 +21,6 @@ int _numberOfEdges(Graph *);
 int _numberOfVertices(Graph *);
 float _freemanNetworkCentrality(Graph *);
 float _closenessCentrality(Graph *, int node);
-static inline __attribute__((always_inline))
-long long syscall(long long n, long long a1, 
-                  long long a2, long long a3, 
-                  long long a4, long long a5, 
-                  long long a6);
-
-
-#define SYS_OPEN(filename, flags, mode) \
-    syscall(2, (filename), (flags), (mode), 0, 0, 0);
-
-#define SYS_LSEEK(fd, offset, origin) \
-    syscall(8, (fd), (offset), (origin), 0, 0 ,0);
-
-#define SYS_MMAP(addr, len, prot, flags, fd, off) \
-    syscall(9, (addr), (len), (prot), (flags), (fd), (off))
-
-#define SYS_MUNMAP(addr, len) \
-    syscall(11, addr, len, 0, 0, 0, 0)
-
-#define SYS_CLOSE(fd) \
-    syscall(3, fd, 0, 0, 0, 0, 0)
-
 
 
 /* a instance of Graph used by all functions */
@@ -159,32 +137,6 @@ int _destroyGraph(Graph *this) {
     return 0;
 }
 
-/* function for making a syscall link open and mmap */
-static inline __attribute__((always_inline))
-long long syscall(long long n, 
-                  long long a1, long long a2, 
-                  long long a3, long long a4, 
-                  long long a5, long long a6) {
-    long long ret;
-    register long long r8 __asm__("r8") = a5;
-    register long long r9 __asm__("r9") = a6;
-    register long long r10 __asm__("r10") = a4;
-    __asm__ __volatile__ (
-        "syscall\n\t"
-        : "=a"(ret)
-        : "a"(n),
-          "D"(a1),
-          "S"(a2),
-          "d"(a3),
-          "r"(r10),
-          "r"(r8),
-          "r"(r9)
-        : "memory",
-          "rcx",
-          "r11"
-    );
-    return ret;
-}
 
 /* display a error string and exit */
 static void safeDestroy(Graph *this, char *errstr) {
