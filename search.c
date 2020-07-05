@@ -109,9 +109,11 @@ static int dfs(Graph* this, int start, int end, int *path, char *visit)
 		return 1;
 	}
     
+    visit[start] = 1;
+
 	for (int ID = this->_vertexList[start]; ID != -1; ID = this->_edgeList[ID].nextID) {
 	    int currVertex = this->_edgeList[ID].to;
-	    if (visit[currVertex] != 1) {
+	    if (visit[currVertex] == 0) {
             visit[currVertex] = 1;
             path[t++] = currVertex;
             if (dfs(this, currVertex, end, path, visit)) {                 //Avoid unnecessary loops
@@ -133,7 +135,6 @@ int *_graphDFS(Graph *this, int start, int end)
 	if (ID == -1) { 
         return NULL;
     }
-	visit[start] = 1;
 	path[0] = start;
 
     int dfsRet = 0;
