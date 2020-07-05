@@ -105,6 +105,7 @@ int *_graphDFS(Graph *this, int start, int end)
         path[1] = -1;
     }
     free(r9);
+    free(visit);
 	return path;
 }
 

@@ -6,3 +6,4 @@ search-cli
 *.o
 try.*
 *.txt
+*.json
