@@ -16,8 +16,6 @@ typedef struct {
 } vertexInfo;
 
 static int dfs(Graph* this, int start, int end, int *pth, char *vis); 
-int _graphBFS(struct graph *, int, int, int  *);
-int *_graphDijkstra(struct graph *, int, int);
 
 static void ensureInvolved(Graph *src, int point) {
     if (point >= src->_vertexMax) {
@@ -30,9 +28,76 @@ static void ensureInvolved(Graph *src, int point) {
     }
 }
 
-int _graphBFS(struct graph *this, int start, int end, int *res) {
-    return 0;
+int *_graphBFS(struct graph *this, int start, int end) {
+	unsigned long long int* vertexDis = NULL;//记录最短路径
+    char* vis = NULL;      //访问情况
+	vertexDis = (unsigned long long int*) malloc(sizeof(unsigned long long int) * this->_vertexMax);
+	vis = (char *) malloc(sizeof(char) * this->_vertexMax);
+    int *res = (int *) malloc(sizeof(int) * this->_vertexNum);
+
+    int pre[this->_vertexMax];               //记录前驱路径
+
+	vertexInfo tmp = {
+		.pos = start,
+		.dis = vertexDis[start]
+	};
+
+    for (int i = 0; i < this->_vertexMax; ++i) {
+		vis[i] = 0;
+		vertexDis[i] = 1e9;
+        pre[i] = -1;
+	}
+
+	priorityQueue* q = initPriorityQueue(this->_vertexMax, sizeof(vertexInfo), compare, assign);
+	vertexDis[start] = 0;
+	vertexInfo* curr = NULL;
+	q->vtable.push(q, &tmp);
+	vis[tmp.pos] = 1;
+
+	while (!q->vtable.isEmpty(q)) {
+		curr = q->vtable.pop(q);	
+        int now = curr->pos;	
+		vis[now] = 0;                          //出队不再访问
+		for (int id= this->_vertexList[now]; id != -1; id = this->_edgeList[id].nextID) {
+			int next = this->_edgeList[id].to;
+			if (vertexDis[next] > vertexDis[now] + this->_edgeList[id].weight) {
+				vertexDis[next] = vertexDis[now] + this->_edgeList[id].weight;
+                pre[next] = now;
+				if (vis[next]) {
+                    continue;     
+                }
+				vis[next] = 1;
+                tmp.pos = next;
+                tmp.dis = vertexDis[this->_edgeList[id].to];
+				q->vtable.push(q, &tmp);
+			}
+		}
+
+	}
+    
+    /*记录路径*/
+    int r = 0;
+    for(int x = end; pre[x] != -1; x = pre[x]) {
+         res[r++]=x;                           //放在后面是正着存的，输出就是正着输出的
+    }
+
+	q->vtable.fini(q);
+    free(vertexDis);
+    free(vis);
+	return res;
 }
+
+ int* graphBFS(char *filename, int start, int end)
+ {
+     if (!mainGraph) {
+        initGraph(filename);
+    }
+    ensureInvolved(mainGraph, start);
+    ensureInvolved(mainGraph, end);
+    int *path = NULL;
+    
+    return mainGraph->vtable.graphBFS(mainGraph, start, end, path);
+ }
 
 
 /*Recursive auxiliary function*/
@@ -127,7 +192,7 @@ int* shortestPath(int u, int v, char algorithm[], char filename[])
     if (strcmp(algorithm, "DFS") == 0) {
         shortPath = graphDFS(filename, u, v);
     } else if (strcmp(algorithm, "BFS" ) == 0) {
-  //      shortPath = graphBFS(filename, u, v);
+        shortPath = graphBFS(filename, u, v);
     } else if (strcmp(algorithm, "BFS" ) == 0) {
         shortPath = graphDijkstar(filename, u, v);
     }
