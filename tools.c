@@ -213,6 +213,9 @@ void (*parseArguments(int argc, char **argv))(void) {
     char *searchParams;
     /* we will scan all arguments and try to set the corresponding flag specified by commandline */
     
+    if (argc == 1) {
+        throwErr();
+    }
     
     for (int i = 1; i < argc; ) {
         if (strcmp(argv[i], "-h") == 0 || strcmp(argv[1], "--help") == 0) {
