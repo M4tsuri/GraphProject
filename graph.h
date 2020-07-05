@@ -13,8 +13,6 @@ typedef struct {
     /* they are implementations of some basic operations on graph */
     int (*numberOfEdges)(struct graph *);
     int (*numberOfVertices)(struct graph *);
-    float (*freemanNetworkCentrality)(struct graph *);
-    float (*closenessCentrality)(struct graph *, int);
     int *(*graphDFS)(struct graph *, int, int);
     int *(*graphBFS)(struct graph *, int, int);
     int *(*graphDijkstra)(struct graph *, int, int);

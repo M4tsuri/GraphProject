@@ -1,5 +1,5 @@
 CC=gcc
-OBJECTS=stats.o tools.o search.o priority.o main.o
+OBJECTS=stats.o tools.o search.o priority.o main.o cli.o
 
 search-cli: $(OBJECTS)
 	$(CC) -o search-cli $(OBJECTS)
@@ -18,6 +18,9 @@ priority.o:
 
 search.o:
 	$(CC) -masm=intel -c search.c
+
+cli.o:
+	$(CC) -c cli.c
 
 clean:
 	rm -rf $(OBJECTS) search-cli

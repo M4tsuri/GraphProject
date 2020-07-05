@@ -1,9 +1,13 @@
 #ifndef TOOLS_H
 #define TOOLS_H
+#include <stdlib.h>
 
-void (*parseArguments(int, char **))(void);
 void readTri(char **line, int *a, int *b, int *c);
 int strcmp(const char *p1, const char *p2);
+
+void initArray(int *start, int length, int num);
+char *mmapFile(char *filename, int *fd, size_t *size);
+void munmapFile(char *fileContent, int fd, size_t mapSize);
 
 long long syscall(long long n, long long a1, 
                   long long a2, long long a3, 

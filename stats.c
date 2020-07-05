@@ -5,12 +5,18 @@
 #include "search.h"
 #include "tools.h"
 
+
+typedef struct {
+    int start;
+    int end;
+} simpEdge;
+
 /* some helper functions */
 static void addEdge(graphEdges *, int *, int start, int end, int ID, int weight);
 static void *safeMalloc(Graph *, size_t);
 static void safeDestroy(Graph *, char *);
 static int maxDegree(Graph *this);
-static void initArray(int *start, int length, int num);
+static int edgeCmp(const void *a, const void *b);
 
 /* destructor of the whole graph, to make sure the malloc memory being freed */
 void __attribute__((destructor)) finalDestroy();
@@ -19,7 +25,7 @@ void __attribute__((destructor)) finalDestroy();
 int _destroyGraph(Graph *);
 int _numberOfEdges(Graph *);
 int _numberOfVertices(Graph *);
-float _freemanNetworkCentrality(Graph *);
+float _freemanNetworkCentrality(simpEdge *, int , int, int);
 float _closenessCentrality(Graph *, int node);
 
 
@@ -27,16 +33,13 @@ float _closenessCentrality(Graph *, int node);
 Graph *mainGraph = NULL;
 
 static graphVtable graph_vtable = {
-    .closenessCentrality = _closenessCentrality,
     .destroyGraph = _destroyGraph,
-    .freemanNetworkCentrality = _freemanNetworkCentrality,
     .numberOfEdges = _numberOfEdges,
     .numberOfVertices = _numberOfVertices,
     .graphBFS = _graphBFS,
     .graphDFS = _graphDFS,
     .graphDijkstra = _graphDijkstra
 };
-
 
 /* initialize the while graph with the data specified in file */
 Graph *initGraph(char *filename) {
@@ -48,19 +51,12 @@ Graph *initGraph(char *filename) {
     productGraph->_edgeNum = 0;
     productGraph->vtable = graph_vtable;
 
-    /* open source file */
+    size_t fileSize = 0;
     int fd = 0;
-    fd = SYS_OPEN((long long)filename, 0, 0);
-    if (fd == -1) {
+    char *fileContent = mmapFile(filename, &fd, &fileSize);
+    if (!fileContent) {
         safeDestroy(productGraph, "Open file failed");
     }
-
-    /* get file length */
-    long long int fileSize = SYS_LSEEK(fd, 0, 2);
-
-    /* map source file into memory */
-    long long int mapSize = (fileSize & ~((long long)0xfff)) + 0x1000;
-    char *fileContent = (char *)SYS_MMAP(0, mapSize, 0x2, 0x2, fd, 0);
     char *fileEnd = fileContent + fileSize;
     /* points at file tail */
 
@@ -100,8 +96,8 @@ Graph *initGraph(char *filename) {
     }
 
     /* close file and munmap */
-    SYS_MUNMAP((long long)fileContent, mapSize);
-    SYS_CLOSE(fd);
+    munmapFile(fileContent, fd, fileSize);
+    
 
     /* initialize main graph */
     mainGraph = productGraph;
@@ -165,13 +161,6 @@ inline static void addEdge(graphEdges *edgeList, int *vertexList, int start, int
 }
 
 
-/* initialize an array with a specified value num */
-inline static void initArray(int *start, int length, int num) {
-    for (int i = 0; i < length; ++i) {
-        start[i] = num;
-    }
-}
-
 int _numberOfEdges(Graph *this) {
     return this->_edgeNum;
 }
@@ -200,31 +189,46 @@ void finalDestroy() {
     }
 }
 
-float _freemanNetworkCentrality(Graph *this) {
-    int *degreeArray = (int *) calloc(sizeof(int), this->_vertexMax);
-    int bidirFlag = 0;
+static int edgeCmp(const void *a, const void *b) {
+    simpEdge *m = (simpEdge *)a;
+    simpEdge *n = (simpEdge *)b;
+    long long int tmp = 0;
+    
+    long long p = m->start;
+    long long q = n->start;
+    p <<= 32;
+    q <<= 32;
+    p += m->end;
+    q += n->end;
 
-    for (int i = 0; i < this->_vertexMax; i++) {
-        int ID = this->_vertexList[i];
-        for ( ; ID != -1; ID = this->_edgeList[ID].nextID) {
-            degreeArray[i]++;
-            int toID = this->_vertexList[this->_edgeList[ID].to];
-            for ( ; toID != -1; toID = this->_edgeList[toID].nextID) {
-                if (this->_edgeList[toID].to == i) {
-                    bidirFlag = 1;
-                    break;
-                }
-            }
-            if (bidirFlag) {
-                bidirFlag = 0;
-                continue;
-            }
-            degreeArray[this->_edgeList[ID].to]++;
-        }
+    long long res = p - q;
+
+    if (res > 0) {
+        return 1;
     }
+    if (res < 0) {
+        return -1;
+    }
+    return res;
+}
+
+float _freemanNetworkCentrality(simpEdge *src, int edgeNum, int vertexMax, int vertexNum) {
+    qsort(src, edgeNum, sizeof(simpEdge), edgeCmp);
+    int *degreeArray = (int *) malloc(vertexMax * sizeof(int));
+    initArray(degreeArray, vertexMax, 0);
+
+    for (int i = 0; i < edgeNum - 1; ++i) {
+        if (src[i].end == src[i + 1].end && src[i].start == src[i + 1].start) {
+            continue;
+        }
+        degreeArray[src[i].end]++;
+        degreeArray[src[i].start]++;
+    }
+    degreeArray[src[edgeNum - 1].end]++;
+    degreeArray[src[edgeNum - 1].start]++;
 
     int maxDegree = degreeArray[0];  
-    for (int i = 1; i < this->_vertexMax; i++) {
+    for (int i = 1; i < vertexMax; i++) {
         if (degreeArray[i] > maxDegree) {
             maxDegree = degreeArray[i];
         } 
@@ -232,14 +236,15 @@ float _freemanNetworkCentrality(Graph *this) {
 
     unsigned long long int sum = 0;
 
-    for (int i = 0; i < this->_vertexMax; ++i) {
+    for (int i = 0; i < vertexMax; ++i) {
         if (degreeArray[i] == 0) {
             continue;
         }
         sum += maxDegree - degreeArray[i];
     }
     
-    unsigned long long vertexNum = this->_vertexNum;
+    unsigned long long N = vertexNum;
+
     float center = (double)sum / (((double)vertexNum - 1) * ((double)vertexNum - 2));
     free(degreeArray);
     return center;
@@ -259,18 +264,70 @@ float _closenessCentrality(Graph *this, int node) {
 
 float freemanNetworkCentrality(char name[])
 {
-    if (!mainGraph) {
-        initGraph(name);
+    size_t fileSize = 0;
+    int fd = 0;
+    char *fileContent = mmapFile(name, &fd, &fileSize);
+    if (!fileContent) {
+        printf("Error: Open file failed.\n");
+        exit(0);
     }
+    char *fileEnd = fileContent + fileSize;
+
+    int lineNum = 0;
+    for (int i = 0; i < fileSize; ++i) {
+        if (fileContent[i] == '\n') {
+            lineNum++;
+        }
+    }
+
+    simpEdge *allEdges = (simpEdge *) malloc(sizeof(simpEdge) * lineNum);
+
+    int edgeNum = 0;
+    int vertexMax = 0;
+    int tmp = 0;
+    int u = 0;
+    int v = 0;
+
+    for (char *curPtr = fileContent; curPtr < fileEnd; ) {
+        readTri(&curPtr, &u, &v, &tmp);
+        if (u > v) {
+            allEdges[edgeNum].start = v;
+            allEdges[edgeNum].end = u;
+            vertexMax = vertexMax > u ? vertexMax : u;
+        } else {
+            allEdges[edgeNum].start = u;
+            allEdges[edgeNum].end = v;
+            vertexMax = vertexMax > v ? vertexMax : v;
+        }
+        edgeNum++;
+    }
+    vertexMax++;
+
+    int *involvedVertices = (int *) malloc(vertexMax * sizeof(int));
+    initArray(involvedVertices, vertexMax, -1);
+
+    for (char *curPtr = fileContent; curPtr < fileEnd; ) {
+        readTri(&curPtr, &u, &v, &tmp);
+        involvedVertices[u] = 0;
+        involvedVertices[v] = 0;
+    }
+
+    int vertexNum = vertexMax;
+    for (int i = 0; i < vertexMax; ++i) {
+        if (involvedVertices[i] == -1) {
+            vertexNum--;
+        }
+    }
+
+    free(involvedVertices);
+    munmapFile(fileContent, fd, fileSize);
  
-    return mainGraph->vtable.freemanNetworkCentrality(mainGraph);
+    float res = _freemanNetworkCentrality(allEdges, edgeNum, vertexMax, vertexNum);
+
+    free(allEdges);
+    return res;
 }
 
-float closenessCentrality(char name[], int node)
-{
-    if (!mainGraph) {
-        initGraph(name);
-    }
- 
-    return mainGraph->vtable.closenessCentrality(mainGraph, node);
+float closenessCentrality(char name[], int node) {
+    return 0;
 }

@@ -76,8 +76,7 @@ int *_graphBFS(struct graph *this, int start, int end) {
     }
     res[r] = start;
     res[r + 1] = -1;
-    res[r + 2] = vertexDis[end];
-    res[r + 3] = vertexDis[end] >> 32;
+    *(long long *)(res + r + 2) = vertexDis[end];
 
     free(vertexDis);
     free(vis);
@@ -192,7 +191,7 @@ int* shortestPath(int u, int v, char algorithm[], char filename[])
         shortPath = graphDFS(filename, u, v);
     } else if (strcmp(algorithm, "BFS" ) == 0) {
         shortPath = graphBFS(filename, u, v);
-    } else if (strcmp(algorithm, "BFS" ) == 0) {
+    } else if (strcmp(algorithm, "Dijkstra" ) == 0) {
         shortPath = graphDijkstar(filename, u, v);
     }
     return shortPath;
@@ -268,10 +267,9 @@ int *_graphDijkstra(struct graph *this, int start, int end) {
         path[top] = cur;
     }
     path[top] = -1;
-    path[top + 1] = vertexDis[end];
-    path[top + 2] = vertexDis[end] >> 32;
+    *(long long *)(path + top + 1) = vertexDis[end];
 
-    free(vertexDis); 
+    free(vertexDis);
     free(pre);
     free(vis);
     return path;
