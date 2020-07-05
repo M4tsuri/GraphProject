@@ -62,25 +62,29 @@ static void *_pop(priorityQueue *this) {
         return 0;
     }
 
-    assign(minElement, this->_items);
+    assign(minElement, this->_items + this->_itemSize);
     assign(lastElement, this->_items + this->_itemSize * this->_size);
     this->_size--;
 
-    int i = 0;
+    if (this->_size == 0) {
+        return minElement;
+    }
+
+    int i = 1;
     int child = 0;
     for ( ; i * 2 <= this->_size; i = child) {
-        child = i * 2 + (int)(i == 0);
+        child = i * 2;
         if (child < this->_size && 
             compare(this->_items + this->_itemSize * child, 
                     this->_items + this->_itemSize * (child + 1)) > 0) {
             child++;
         }
 
-        if (compare(lastElement, this->_items + this->_itemSize * child) < 0) {
-            break;
-        } else {
+        if (compare(lastElement, this->_items + this->_itemSize * child) > 0) {
             assign(this->_items + this->_itemSize * i, 
                    this->_items + this->_itemSize * child);
+        } else {
+            break;
         }
     }
     assign(this->_items + this->_itemSize * i, lastElement);
@@ -96,14 +100,14 @@ static void _push(priorityQueue *this, void *item) {
     }
 
     if (this->_size == 0) {
-        assign(this->_items + this->_itemSize * this->_size, item);
+        assign(this->_items + this->_itemSize, item);
         this->_size = 1;
         return;
     }
 
     this->_size++;
     int i = this->_size;
-    for ( ; compare(item, this->_items + this->_itemSize * (i / 2)) < 0 && i != 0; i /= 2) {
+    for ( ; compare(item, this->_items + this->_itemSize * (i / 2)) < 0 && i > 1; i /= 2) {
         assign(this->_items + this->_itemSize * i,
                this->_items + this->_itemSize * (i / 2));
     }
@@ -147,6 +151,7 @@ priorityQueue *initPriorityQueue(int capacity, size_t itemSize, int (*cmp)(const
         printf("Error: Memory allocation failed.\n");
         exit(-1);
     }
+    
 
     return productQueue;
 }

@@ -4,7 +4,8 @@
 
 int *_graphDFS(struct graph *, int, int);
 int *_graphBFS(struct graph *, int, int);
-int *_graphDijkstra(struct graph *, int, int);
+int *_graphDijkstra(struct graph *, int, int, unsigned long long **);
+void ensureInvolved(Graph *src, int point);
 
 /* 
  * input:

@@ -8,7 +8,6 @@
 
 static int compare(const void *a, const void *b);
 static void assign(void *a, void *b);
-static void ensureInvolved(Graph *src, int point);
 
 typedef struct {
     unsigned long long pos;
@@ -17,7 +16,7 @@ typedef struct {
 
 static int dfs(Graph* this, int start, int end, int *pth, char *vis); 
 
-static void ensureInvolved(Graph *src, int point) {
+void ensureInvolved(Graph *src, int point) {
     if (point >= src->_vertexMax) {
         printf("Error: vertex %d not in graph.\n", point);
         exit(-1);
@@ -76,7 +75,6 @@ int *_graphBFS(struct graph *this, int start, int end) {
     }
     res[r] = start;
     res[r + 1] = -1;
-    *(long long *)(res + r + 2) = vertexDis[end];
 
     free(vertexDis);
     free(vis);
@@ -205,10 +203,10 @@ int* graphDijkstar(char *filename, int start, int end) {
     ensureInvolved(mainGraph, start);
     ensureInvolved(mainGraph, end);
 
-    return mainGraph->vtable.graphDijkstra(mainGraph, start, end);
+    return mainGraph->vtable.graphDijkstra(mainGraph, start, end, NULL);
 }
 
-int *_graphDijkstra(struct graph *this, int start, int end) {
+int *_graphDijkstra(struct graph *this, int start, int end, unsigned long long **disArray) {
     unsigned long long int *vertexDis = NULL;
     vertexDis = (unsigned long long int *) malloc(sizeof(unsigned long long int) * this->_vertexMax);
     for (int i = 0; i < this->_vertexMax; ++i) {
@@ -219,6 +217,7 @@ int *_graphDijkstra(struct graph *this, int start, int end) {
     
     for (int i = 0; i < this->_vertexMax; ++i) {
         pre[i] = -1;
+        vis[i] = 0;
     }
 
     priorityQueue *q = initPriorityQueue(this->_vertexMax, sizeof(vertexInfo), compare, assign);
@@ -255,7 +254,15 @@ int *_graphDijkstra(struct graph *this, int start, int end) {
             }
         }
     }
+
     q->vtable.fini(q);
+
+    if (end == -1) {
+        free(pre);
+        free(vis);
+        *disArray = vertexDis;
+        return NULL;
+    }
 
     int cur = end;
     int top = 1;
@@ -267,8 +274,8 @@ int *_graphDijkstra(struct graph *this, int start, int end) {
         path[top] = cur;
     }
     path[top] = -1;
-    *(long long *)(path + top + 1) = vertexDis[end];
 
+    
     free(vertexDis);
     free(pre);
     free(vis);

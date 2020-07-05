@@ -26,7 +26,7 @@ static void helperFunc(void);
 static void freemanFunc(void);
 static void edgesFunc(void);
 static void verticesFunc(void);
-static void clossnessFunc(void);
+static void closenessFunc(void);
 static void dfsFunc(void);
 static void bfsFunc(void);
 static void dijkstraFunc(void);
@@ -86,8 +86,10 @@ static void verticesFunc() {
     printf("There are %d vertices in this graph.\n", res);
 }
 
-static void clossnessFunc() {
-    printf("Not implemented.\n");
+static void closenessFunc() {
+    printf("Reading %s ...\n", filename);
+    float res = closenessCentrality(filename, startPoint);
+    printf("Closeness Centrality is %f.\n", res);
 }
 
 static void dfsFunc(void) {
@@ -120,7 +122,6 @@ static void bfsFunc(void) {
         return;
     }
     printf("Path found:\n");
-    printf("Cost: %llu\n", *(unsigned long long *)(res + len + 2));
     for ( ; len > 0; --len) {
         printf("%d -> ", res[len]);
     }
@@ -139,7 +140,6 @@ static void dijkstraFunc(void) {
         return;
     }
     printf("Path found:\n");
-    printf("Cost: %llu\n", *(unsigned long long *)(res + len + 2));
     for ( ; len > 0; --len) {
         printf("%d -> ", res[len]);
     }
@@ -180,6 +180,9 @@ void (*parseArguments(int argc, char **argv))(void) {
             searchParams = argv[i + 1];
             i += 2;
         } else if (strcmp(argv[i], "-g") == 0 || strcmp(argv[i], "--graph") == 0) {
+            if (argc <= i + 1) {
+                throwErr();
+            }
             FILE *tmp = NULL;
             if (!(tmp = fopen(argv[i + 1], "r"))) {
                 throwErr();
@@ -189,6 +192,9 @@ void (*parseArguments(int argc, char **argv))(void) {
             filename = argv[i + 1];
             i += 2;
         } else if (strcmp(argv[i], "-u") == 0) {
+            if (argc <= i + 1) {
+                throwErr();
+            }
             for (int j = 0; argv[i + 1][j] != 0; ++j) {
                 if (argv[i + 1][j] < '0' || argv[i + 1][j] > '9') {
                     throwErr();
@@ -198,6 +204,9 @@ void (*parseArguments(int argc, char **argv))(void) {
             }
             i += 2;
         } else if (strcmp(argv[i], "-v") == 0) {
+            if (argc <= i + 1) {
+                throwErr();
+            }
             for (int j = 0; argv[i + 1][j] != 0; ++j) {
                 if (argv[i + 1][j] < '0' || argv[i + 1][j] > '9') {
                     throwErr();
@@ -207,7 +216,23 @@ void (*parseArguments(int argc, char **argv))(void) {
             }
             i += 2;
         } else if (strcmp(argv[i], "-s") == 0 || strcmp(argv[i], "--stats") == 0) {
+            if (argc <= i + 1) {
+                throwErr();
+            }
             statMode = argv[i + 1];
+            if (strcmp(statMode, "closeness") == 0) {
+                if (argc <= i + 2) {
+                    throwErr();
+                }
+                for (int j = 0; argv[i + 2][j] != 0; ++j) {
+                    if (argv[i + 2][j] < '0' || argv[i + 2][j] > '9') {
+                        throwErr();
+                    }
+                }
+                startPoint = atoi(argv[i + 2]);
+                startFlag = 1;
+                i++;
+            }
             statFlag = 1;
             i += 2;
         } else {
@@ -225,8 +250,11 @@ void (*parseArguments(int argc, char **argv))(void) {
             return verticesFunc;
         } else if (strcmp(statMode, "edges") == 0) {
             return edgesFunc;
-        } else if (strcmp(statMode, "clossness") == 0) {
-            return clossnessFunc;
+        } else if (strcmp(statMode, "closeness") == 0) {
+            if (!startFlag) {
+                throwErr();
+            }
+            return closenessFunc;
         } else {
             throwErr();
         }
@@ -246,5 +274,6 @@ void (*parseArguments(int argc, char **argv))(void) {
             throwErr();
         }
     }
+    throwErr();
     return NULL;
 }

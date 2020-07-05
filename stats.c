@@ -38,7 +38,8 @@ static graphVtable graph_vtable = {
     .numberOfVertices = _numberOfVertices,
     .graphBFS = _graphBFS,
     .graphDFS = _graphDFS,
-    .graphDijkstra = _graphDijkstra
+    .graphDijkstra = _graphDijkstra,
+    .closenessCentrality = _closenessCentrality
 };
 
 /* initialize the while graph with the data specified in file */
@@ -180,7 +181,7 @@ int numberOfVertices(char name[]) {
     if (!mainGraph) {
         initGraph(name);
     }
-    return mainGraph->vtable.numberOfVertices(mainGraph);;
+    return mainGraph->vtable.numberOfVertices(mainGraph);
 }
 
 void finalDestroy() {
@@ -251,14 +252,19 @@ float _freemanNetworkCentrality(simpEdge *src, int edgeNum, int vertexMax, int v
 }
 
 float _closenessCentrality(Graph *this, int node) {
-    int sum = 0;
-    int *path;
-    int n = this->_vertexMax;
-    //this->graphDijkstar(this, node, path);
+    unsigned long long *disArray = NULL;
+    unsigned long long sum = 0;
+    unsigned long long n = 0;
+    this->vtable.graphDijkstra(this, node, -1, &disArray);
     for (int i = 0; i < this->_vertexMax; i++) {
-        sum += path[i];
+        if ((long long)(disArray[i]) == -1) {
+            continue;
+        }
+        sum += disArray[i];
+        n++;
     }
-    float close = (n - 1) / sum;
+    free(disArray);
+    float close = ((double)n - 1) / (double)sum;
     return close;
 }
 
@@ -329,5 +335,9 @@ float freemanNetworkCentrality(char name[])
 }
 
 float closenessCentrality(char name[], int node) {
-    return 0;
+    if (!mainGraph) {
+        initGraph(name);
+    }
+    ensureInvolved(mainGraph, node);
+    return mainGraph->vtable.closenessCentrality(mainGraph, node);
 }
