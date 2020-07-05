@@ -31,34 +31,30 @@ static void ensureInvolved(Graph *src, int point) {
 int *_graphBFS(struct graph *this, int start, int end) {
 	unsigned long long int* vertexDis = NULL;//记录最短路径
     char* vis = NULL;      //访问情况
+
 	vertexDis = (unsigned long long int*) malloc(sizeof(unsigned long long int) * this->_vertexMax);
 	vis = (char *) malloc(sizeof(char) * this->_vertexMax);
-    int *res = (int *) malloc(sizeof(int) * this->_vertexNum);
-
-    int pre[this->_vertexMax];               //记录前驱路径
-
-	vertexInfo tmp = {
-		.pos = start,
-		.dis = vertexDis[start]
-	};
+    int *res = (int *) malloc(sizeof(int) * this->_vertexMax);
+    int *pre = (int *) malloc(sizeof(int) * this->_vertexMax); 
+    int *queue = (int *) malloc(sizeof(int) * this->_vertexMax);
 
     for (int i = 0; i < this->_vertexMax; ++i) {
 		vis[i] = 0;
-		vertexDis[i] = 1e9;
+		vertexDis[i] = -1;
         pre[i] = -1;
 	}
 
-	priorityQueue* q = initPriorityQueue(this->_vertexMax, sizeof(vertexInfo), compare, assign);
 	vertexDis[start] = 0;
-	vertexInfo* curr = NULL;
-	q->vtable.push(q, &tmp);
-	vis[tmp.pos] = 1;
+	queue[0] = start;
+    int queueFront = -1;
+    int queueRear = 0;
+    int queueCapicity = this->_vertexMax;
+	vis[start] = 1;
 
-	while (!q->vtable.isEmpty(q)) {
-		curr = q->vtable.pop(q);	
-        int now = curr->pos;	
+	while (queueFront % queueCapicity < queueRear % queueCapicity) {	
+        int now = queue[(++queueFront) % queueCapicity];	
 		vis[now] = 0;                          //出队不再访问
-		for (int id= this->_vertexList[now]; id != -1; id = this->_edgeList[id].nextID) {
+		for (int id = this->_vertexList[now]; id != -1; id = this->_edgeList[id].nextID) {
 			int next = this->_edgeList[id].to;
 			if (vertexDis[next] > vertexDis[now] + this->_edgeList[id].weight) {
 				vertexDis[next] = vertexDis[now] + this->_edgeList[id].weight;
@@ -67,9 +63,7 @@ int *_graphBFS(struct graph *this, int start, int end) {
                     continue;     
                 }
 				vis[next] = 1;
-                tmp.pos = next;
-                tmp.dis = vertexDis[this->_edgeList[id].to];
-				q->vtable.push(q, &tmp);
+				queue[(++queueRear) % queueCapicity] = next;
 			}
 		}
 
@@ -77,13 +71,18 @@ int *_graphBFS(struct graph *this, int start, int end) {
     
     /*记录路径*/
     int r = 0;
-    for(int x = end; pre[x] != -1; x = pre[x]) {
-         res[r++]=x;                           //放在后面是正着存的，输出就是正着输出的
+    for(int x = end; x != start && pre[x] != -1; x = pre[x]) {
+         res[r++] = x;                           //放在后面是正着存的，输出就是正着输出的
     }
+    res[r] = start;
+    res[r + 1] = -1;
+    res[r + 2] = vertexDis[end];
+    res[r + 3] = vertexDis[end] >> 32;
 
-	q->vtable.fini(q);
     free(vertexDis);
     free(vis);
+    free(pre);
+    free(queue);
 	return res;
 }
 
@@ -94,9 +93,8 @@ int *_graphBFS(struct graph *this, int start, int end) {
     }
     ensureInvolved(mainGraph, start);
     ensureInvolved(mainGraph, end);
-    int *path = NULL;
     
-    return mainGraph->vtable.graphBFS(mainGraph, start, end, path);
+    return mainGraph->vtable.graphBFS(mainGraph, start, end);
  }
 
 
@@ -273,6 +271,8 @@ int *_graphDijkstra(struct graph *this, int start, int end) {
     path[top + 2] = vertexDis[end] >> 32;
 
     free(vertexDis); 
+    free(pre);
+    free(vis);
     return path;
 }
 

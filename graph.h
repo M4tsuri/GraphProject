@@ -16,7 +16,7 @@ typedef struct {
     float (*freemanNetworkCentrality)(struct graph *);
     float (*closenessCentrality)(struct graph *, int);
     int *(*graphDFS)(struct graph *, int, int);
-    int *(*graphBFS)(struct graph *, int, int, int *);
+    int *(*graphBFS)(struct graph *, int, int);
     int *(*graphDijkstra)(struct graph *, int, int);
 } graphVtable;
 

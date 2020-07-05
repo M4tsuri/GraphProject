@@ -29,6 +29,7 @@ static void clossnessFunc(void);
 static void dfsFunc(void);
 static void bfsFunc(void);
 static void dijkstraFunc(void);
+static void logoFunc(void);
 
 
 /* Compare S1 and S2, returning less than, equal to or
@@ -78,6 +79,22 @@ long long syscall(long long n,
     return ret;
 }
 
+static void logoFunc() {
+        puts(ANSI_COLOR_YELLOW
+" _________________________\n"
+"< 想不到吧，蒜头君是一头牛 >\n"
+" -------------------------\n"
+ANSI_COLOR_GREEN
+"        \\   ^__^\n"
+ANSI_COLOR_CYAN
+"         \\  (oo)\\_______\n"
+"            (__)\\       )\\/\n"
+ANSI_COLOR_MAGENTA
+"                ||----w |\n"
+"                ||     ||\n"
+     ANSI_COLOR_RESET "\n");
+}
+
 
 static void helperFunc() {
     const char *helpMesg = 
@@ -95,19 +112,6 @@ static void helperFunc() {
 "  -sp, --shortestpath          calculate the shortest between two points in the graph. \n"
 "  -u <STARTING_POINT>          start from the specific point, only available with -sp. \n"
 "  -v <TARGET_POINT>            specify the target point, only available with -sp. \n";
-    puts(ANSI_COLOR_YELLOW
-" _________________________\n"
-"< 想不到吧，蒜头君是一头牛 >\n"
-" -------------------------\n"
-ANSI_COLOR_GREEN
-"        \\   ^__^\n"
-ANSI_COLOR_CYAN
-"         \\  (oo)\\_______\n"
-"            (__)\\       )\\/\n"
-ANSI_COLOR_MAGENTA
-"                ||----w |\n"
-"                ||     ||\n"
-     ANSI_COLOR_RESET "\n");
     puts(helpMesg);
 }
 
@@ -130,9 +134,7 @@ static void verticesFunc() {
 }
 
 static void clossnessFunc() {
-    printf("Reading %s ...\n", filename);
-    float res = closenessCentrality(filename, startPoint);
-    printf("Clossness Centrality is %f.", res);
+    printf("Not implemented.\n");
 }
 
 static void dfsFunc(void) {
@@ -155,8 +157,22 @@ static void dfsFunc(void) {
 }
 
 static void bfsFunc(void) {
-    
-    return;
+    int *res = NULL;
+    res = graphBFS(filename, startPoint, targetPoint);
+    int len = 0;
+    for ( ; res[len + 1] != -1; ++len);
+    if (len == 0) {
+        printf("No path.\n");
+        free(res);
+        return;
+    }
+    printf("Path found:\n");
+    printf("Cost: %llu\n", (unsigned long long)res[len + 2]);
+    for ( ; len > 0; --len) {
+        printf("%d -> ", res[len]);
+    }
+    printf("%d\n", res[0]);
+    free(res);
 }
 
 static void dijkstraFunc(void) {
@@ -201,6 +217,8 @@ void (*parseArguments(int argc, char **argv))(void) {
     for (int i = 1; i < argc; ) {
         if (strcmp(argv[i], "-h") == 0 || strcmp(argv[1], "--help") == 0) {
             return helperFunc;
+        } else if (strcmp(argv[i], "-j") == 0) {
+            return logoFunc;
         } else if (strcmp(argv[i], "-sp") == 0 || strcmp(argv[1], "--shortestpath") == 0) {
             spFlag = 1;
             searchParams = argv[i + 1];
@@ -252,9 +270,6 @@ void (*parseArguments(int argc, char **argv))(void) {
         } else if (strcmp(statMode, "edges") == 0) {
             return edgesFunc;
         } else if (strcmp(statMode, "clossness") == 0) {
-            if (!startFlag) {
-                throwErr();
-            }
             return clossnessFunc;
         } else {
             throwErr();
