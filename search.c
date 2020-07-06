@@ -50,13 +50,13 @@ int *_graphBFS(struct graph *this, int start, int end) {
     int queueCapicity = this->_vertexMax;
 	vis[start] = 1;
 
-	while (queueFront % queueCapicity < queueRear % queueCapicity) {	
+	while (queueFront < queueRear) {	
         int now = queue[(++queueFront) % queueCapicity];	
 		vis[now] = 0;                          //出队不再访问
-		for (int id = this->_vertexList[now]; id != -1; id = this->_edgeList[id].nextID) {
-			int next = this->_edgeList[id].to;
-			if (vertexDis[next] > vertexDis[now] + this->_edgeList[id].weight) {
-				vertexDis[next] = vertexDis[now] + this->_edgeList[id].weight;
+		for (int ID = this->_vertexList[now]; ID != -1; ID = this->_edgeList[ID].nextID) {
+			int next = this->_edgeList[ID].to;
+			if (vertexDis[next] > vertexDis[now] + this->_edgeList[ID].weight) {
+				vertexDis[next] = vertexDis[now] + this->_edgeList[ID].weight;
                 pre[next] = now;
 				if (vis[next]) {
                     continue;     
@@ -65,7 +65,6 @@ int *_graphBFS(struct graph *this, int start, int end) {
 				queue[(++queueRear) % queueCapicity] = next;
 			}
 		}
-
 	}
     
     /*记录路径*/
@@ -75,6 +74,7 @@ int *_graphBFS(struct graph *this, int start, int end) {
     }
     res[r] = start;
     res[r + 1] = -1;
+    *(unsigned long long *)(&res[r + 2]) = vertexDis[end];
 
     free(vertexDis);
     free(vis);
@@ -274,6 +274,7 @@ int *_graphDijkstra(struct graph *this, int start, int end, unsigned long long *
         path[top] = cur;
     }
     path[top] = -1;
+    *(unsigned long long *)(&path[top + 1]) = vertexDis[end];
 
     
     free(vertexDis);

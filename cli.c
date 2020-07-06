@@ -121,6 +121,7 @@ static void bfsFunc(void) {
         free(res);
         return;
     }
+    printf("Cost: %llu\n", *(unsigned long long*)(&res[len + 2]));
     printf("Path found:\n");
     for ( ; len > 0; --len) {
         printf("%d -> ", res[len]);
@@ -139,6 +140,7 @@ static void dijkstraFunc(void) {
         free(res);
         return;
     }
+    printf("Cost: %llu\n", *(unsigned long long*)(&res[len + 2]));
     printf("Path found:\n");
     for ( ; len > 0; --len) {
         printf("%d -> ", res[len]);
